@@ -38,7 +38,7 @@ void bd_decrypt(double bd_lat, double bd_lon, double *gg_lat, double *gg_lon)
 
 + (CLLocationCoordinate2D)gpsCoordinateFromBDCoordinate:(CLLocationCoordinate2D)coordinate {
     CLLocationCoordinate2D marsCoordinate = [self marsCoordinateFromBDCoordinate:coordinate];
-    return [self gpsCoordinateFromMarsCoordinate:CLLocationCoordinate2DMake(latitude, longitude)];
+    return [self gpsCoordinateFromMarsCoordinate:marsCoordinate];
 }
 
 + (CLLocationCoordinate2D)gpsCoordinateFromMarsCoordinate:(CLLocationCoordinate2D)coordinate {
