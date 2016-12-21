@@ -32,14 +32,12 @@ void bd_decrypt(double bd_lat, double bd_lon, double *gg_lat, double *gg_lon)
 @implementation KSCoordinateConverter
 
 + (CLLocationCoordinate2D)bdCoordinateFromGPSCoordinate:(CLLocationCoordinate2D)coordinate {
-    double latitude, longitude;
-    bd_encrypt(coordinate.latitude, coordinate.longitude, &latitude, &longitude);
-    return CLLocationCoordinate2DMake(latitude, longitude);
+    CLLocationCoordinate2D marsCoordinate = [self marsCoordinateFromBDCoordinate:coordinate];
+	return [self bdCoordinateFromMarsCoordinate:marsCoordinate];
 }
 
 + (CLLocationCoordinate2D)gpsCoordinateFromBDCoordinate:(CLLocationCoordinate2D)coordinate {
-    double latitude, longitude;
-    bd_decrypt(coordinate.latitude, coordinate.longitude, &latitude, &longitude);
+    CLLocationCoordinate2D marsCoordinate = [self marsCoordinateFromBDCoordinate:coordinate];
     return [self gpsCoordinateFromMarsCoordinate:CLLocationCoordinate2DMake(latitude, longitude)];
 }
 
@@ -49,19 +47,19 @@ void bd_decrypt(double bd_lat, double bd_lon, double *gg_lat, double *gg_lon)
     double longitude = marsCoordinate.longitude - coordinate.longitude;
     latitude = coordinate.latitude - latitude;
     longitude = coordinate.longitude - longitude;
-    
+
     return CLLocationCoordinate2DMake(latitude, longitude);
 }
 
 + (CLLocationCoordinate2D)marsCoordinateFromGPSCoordinate:(CLLocationCoordinate2D)coordinate {
-    
+
     const double a = 6378245.0;
     const double ee = 0.00669342162296594323;
-    
+
     if ([self outOfChina:coordinate])  {
         return coordinate;
     }
-    
+
     double dLat = [self transformLatitudeWithX:coordinate.longitude - 105.0 andY:coordinate.latitude - 35.0];
     double dLon = [self transformLongitudeWithX:coordinate.longitude - 105.0 andY:coordinate.latitude - 35.0];
     double radLat = coordinate.latitude / 180.0 * M_PI;
@@ -72,8 +70,20 @@ void bd_decrypt(double bd_lat, double bd_lon, double *gg_lat, double *gg_lon)
     dLon = (dLon * 180.0) / (a / sqrtMagic * cos(radLat) * M_PI);
     coordinate.latitude = coordinate.latitude + dLat;
     coordinate.longitude = coordinate.longitude + dLon;
-    
+
     return coordinate;
+}
+
++ (CLLocationCoordinate2D)bdCoordinateFromMarsCoordinate:(CLLocationCoordinate2D)coordinate {
+	double latitude, longitude;
+    bd_encrypt(coordinate.latitude, coordinate.longitude, &latitude, &longitude);
+    return CLLocationCoordinate2DMake(latitude, longitude);
+}
+
++ (CLLocationCoordinate2D)marsCoordinateFromBDCoordinate:(CLLocationCoordinate2D)coordinate {
+	double latitude, longitude;
+    bd_decrypt(coordinate.latitude, coordinate.longitude, &latitude, &longitude);
+	return CLLocationCoordinate2DMake(latitude, longitude);
 }
 
 + (BOOL)outOfChina:(CLLocationCoordinate2D)coordinate{
